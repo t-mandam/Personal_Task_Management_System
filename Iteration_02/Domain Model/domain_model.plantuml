@@ -1,0 +1,66 @@
+@startuml
+left to right direction
+Object Console
+object TaskCatalog
+object Task
+   Task : id
+   Task : title
+   Task : description
+   Task : creationDate
+   Task : dueDate
+   Task : priority
+   Task : status
+object Subtask
+object Update
+   Update : timestamp
+   Update : description
+object UpdateLog
+object Tag
+object Recurrence
+object Project
+   Project : name
+   Project : description
+object Search
+object Sort
+object Ocurrence
+object Collaborator
+object Junior
+object Intermediate
+object Senior
+diamond link
+object Assignment
+object Criteria
+object Import
+object Export
+
+Console -- UpdateLog : controls
+Console -- Search: shows
+Search -- TaskCatalog : searches
+Search o-- Criteria : selects
+Console -- Sort : shows
+Sort -- TaskCatalog : sorts
+TaskCatalog *-- "*" Task
+TaskCatalog *-- "*" Project
+Task <|-- Subtask
+Task <|-- Ocurrence
+Task *-- Subtask
+Project o-- Task : regroups
+Task -- "*" Tag : has
+UpdateLog *-- Update
+UpdateLog -- TaskCatalog : logs updates of
+Update "*" -- Task : updates
+Task -- Recurrence : implements
+Recurrence -- "*" Ocurrence : generates
+Task "*" -- link
+Collaborator "*" -- link
+link .. Assignment
+Assignment -- Subtask : creates
+Project -- "*" Collaborator : defines
+Collaborator <|-- Junior
+Collaborator <|-- Intermediate
+Collaborator <|-- Senior
+Console -- Import
+Console -- Export
+Import -- TaskCatalog : imports into
+Export -- Search : exports
+@enduml
