@@ -1,0 +1,86 @@
+@startuml
+left to right direction
+actor User as u
+rectangle "Personal Task Management System" {
+   usecase "Manage Tasks" as mt
+     usecase "Create Task" as ctk
+       usecase "Add Recurrence" as addrecurr
+       addrecurr ..> ctk : extends
+     usecase "Create Subtask" as crtsub
+     usecase "Update Task" as ut
+       usecase "Complete Task" as cmpt
+       usecase "Cancel Task" as cclt
+       usecase "Change Title" as chgt
+       usecase "Change Description" as chgd
+       usecase "Change Priority" as chgp
+       usecase "Change Due Date" as cdd
+       usecase "Associate Tag" as asstg
+       cmpt ..> ut : extends
+       cclt ..> ut : extends
+       chgt ..> ut : extends
+       chgd ..> ut : extends
+       chgp ..> ut : extends
+       cdd ..> ut : extends
+       asstg ..> ut : extends
+     usecase "Create Tag" as ctg
+     mt ..> ctk : include
+     mt ..> crtsub : include
+     mt ..> ut : include
+     mt ..> ctg : include
+
+   usecase "Manage Projects" as mp
+     usecase "Create Project" as cp
+     usecase "Assign Task to Project" as attp
+     usecase "Remove Task from Project" as rtfp
+     mp ..> cp : include
+     mp ..> attp : include
+     mp ..> rtfp : include
+
+   usecase "View Tasks" as vt
+     usecase "Sort Tasks" as st
+       usecase "Sort by Due Date" as stbdd
+       usecase "Sort by Priority" as stbp
+       usecase "Sort by Status" as stbs
+       usecase "Sort by Project" as stbpj
+       usecase "Sort by Tag" as stbtg
+       stbdd ..> st : extends
+       stbp ..> st : extends
+       stbs ..> st : extends
+       stbpj ..> st : extends
+       stbtg ..> st : extends
+     usecase "Search Task" as srch
+     usecase "Criteria Search" as ctrsrch
+       ctrsrch ..> srch : extends
+       usecase "Search by Keyword" as shbk
+       usecase "Seach by Date" as shbd
+       usecase "Search by Date Range" as srchdtrg
+       usecase "Search by Status" as srchstatus
+       usecase "Search by Week Day" as srchwkdy
+       usecase "Search by Tag" as srchtag
+       shbk ..> ctrsrch : extends
+       shbd ..> ctrsrch : extends
+       srchstatus ..> ctrsrch : extends
+       srchwkdy ..> ctrsrch : extends
+       srchtag ..> ctrsrch : extends
+       srchdtrg ..> ctrsrch : extends
+     vt ..> st : include
+     vt ..> srch : include
+
+   usecase "Manage collaborators" as mngcollab
+     usecase "Create Collaborator" as crtcollab
+     usecase "Link Collaborator" as linkcollab
+     mngcollab ..> crtcollab : include
+     mngcollab ..> linkcollab : include
+     linkcollab ..> crtsub : include
+   usecase "Transfer Tasks" as trsftsk
+     usecase "Import Tasks" as imptsk
+     usecase "Export Tasks" as exptsk
+     trsftsk ..> imptsk : include
+     trsftsk ..> exptsk : include
+}
+u --> mt
+u --> mp
+u --> vt
+u --> mngcollab
+u --> trsftsk
+@enduml
