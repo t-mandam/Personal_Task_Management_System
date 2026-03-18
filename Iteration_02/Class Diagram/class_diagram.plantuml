@@ -23,31 +23,24 @@ class Task {
 }
 
 class Subtask
-
 Task <|-- Subtask
 
 class Tag {
   -name : String
 }
+Task -- "*" Tag
 
 class Project {
   -name : String
   -description : String
 }
-
 Project -- "*" Task
 
 class Recurrence {
   -type : RecurrenceType
   -interval : int
 }
-
-class Occurrence {
-  -date : Date
-}
-
-Task -- "0..1" Recurrence
-Recurrence -- "*" Occurrence
+Task "*" -- "0..1" Recurrence
 
 abstract class Collaborator {
   #name : String
@@ -56,45 +49,38 @@ abstract class Collaborator {
 class Junior
 class Intermediate
 class Senior
-
 Collaborator <|-- Junior
 Collaborator <|-- Intermediate
 Collaborator <|-- Senior
 
 class Assignment
-Assignment "*" .. Task
-Assignment "*" .. Collaborator
+Assignment .. "*" Task
+Assignment .. "*" Collaborator
 
 Project -- "*" Collaborator
 
 interface TaskObserver {
   +update(task : Task)
 }
-
 class ActivityLog {
   -updates : List<Activity>
 }
-
 class Activity {
   -timestamp : Date
   -description : String
 }
-
 TaskObserver <|.. ActivityLog
 ActivityLog *-- Activity
-
 Task --> "*" TaskObserver : notifies
 
 interface SortStrategy {
   +sort(tasks : List<Task>) : List<Task>
 }
-
 class DueDateSort
 class PrioritySort
 class StatusSort
 class ProjectSort
 class TagSort
-
 SortStrategy <|.. DueDateSort
 SortStrategy <|.. PrioritySort
 SortStrategy <|.. StatusSort
@@ -115,16 +101,13 @@ class TaskFactory {
   +createRecurringTask(title, recurrence) : Task
   +createSubtask(parent : Task) : Subtask
 }
-
-TaskFactory --> Task
-TaskFactory --> Subtask
+TaskFactory --> TaskRepository
 
 interface TaskRepository {
   +addTask(task : Task)
-  +removeTask(task : Task)
+  +updateTask(task : Task)
   +findAll() : List<Task>
 }
-
 class TaskCatalog {
   taskCatalog : List<Task>
 }
@@ -137,39 +120,91 @@ interface Command {
 }
 
 class CreateTaskCommand
-class DeleteTaskCommand
 class AssignCollaboratorCommand
 class ImportCommand
 class ExportCommand
 
+class UpdateTitleCommand {
+  -task : Task
+  -newTitle : String
+  +execute()
+}
+class UpdateDescriptionCommand {
+  -task : Task
+  -newDescription : String
+}
+class UpdateStatusCommand {
+  -task : Task
+  -newStatus : Status
+  +completeTask()
+  +cancelTask()
+  +reopenTask()
+}
+class UpdatePriorityCommand {
+  -task : Task
+  -newPriority : Priority
+}
+class UpdateDueDateCommand {
+  -task : Task
+  -newDueDate : LocalDateTime
+}
+class UpdateTagsCommand {
+  -task : Task
+  -tag: Tag
+  +addTag()
+  +removeTag()
+}
+
 Command <|.. CreateTaskCommand
-Command <|.. UpdateTaskCommand
 Command <|.. AssignCollaboratorCommand
 Command <|.. ImportCommand
 Command <|.. ExportCommand
 Command <|.. SortCommand
 Command <|.. SearchCommand
+Command <|.. UpdateTitleCommand
+Command <|.. UpdateDescriptionCommand
+Command <|.. UpdateStatusCommand
+Command <|.. UpdatePriorityCommand
+Command <|.. UpdateDueDateCommand
+Command <|.. UpdateTagsCommand
 
 CreateTaskCommand --> TaskFactory
-UpdateTaskCommand --> TaskRepository
+UpdateTitleCommand --> TaskRepository
+UpdateDescriptionCommand --> TaskRepository
+UpdateStatusCommand --> TaskRepository
+UpdatePriorityCommand --> TaskRepository
+UpdateDueDateCommand --> TaskRepository
+UpdateTagsCommand --> TaskRepository
 AssignCollaboratorCommand --> Assignment
 ImportCommand --> TaskRepository
 ExportCommand --> TaskRepository
 
-
 class SearchCommand {
   +search(repo : TaskRepository, criteria : Criteria)
 }
-
-class Criteria {
-  -titleKeyword : String
+interface SearchCriterion {
+  +matches(task : Task) : boolean
+}
+class KeywordCriterion {
+  -keyword : String
+}
+class DateRangeCriterion {
   -fromDate : Date
   -toDate : Date
+}
+class StatusCriterion {
   -status : Status
+}
+class DayOfWeekCriterion {
+  -day : int
 }
 
 SearchCommand --> TaskRepository
-SearchCommand --> Criteria
+SearchCommand --> SearchCriterion 
+SearchCriterion <|.. KeywordCriterion
+SearchCriterion <|.. DateRangeCriterion
+SearchCriterion <|.. StatusCriterion
+SearchCriterion <|.. DayOfWeekCriterion
 
 class Console {
   +executeCommand(command : Command)
@@ -182,17 +217,15 @@ enum Priority {
   MEDIUM
   HIGH
 }
-
 enum Status {
   OPEN
   COMPLETED
   CANCELLED
 }
-
 enum RecurrenceType {
   DAILY
   WEEKLY
   MONTHLY
+  WEEK_DAY
 }
-
 @enduml
