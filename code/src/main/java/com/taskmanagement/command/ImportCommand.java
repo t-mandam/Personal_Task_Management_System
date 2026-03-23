@@ -1,6 +1,11 @@
 package com.taskmanagement.command;
 
+import com.taskmanagement.domain.Task;
 import com.taskmanagement.repository.TaskRepository;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Command to import tasks from an external source
@@ -8,12 +13,22 @@ import com.taskmanagement.repository.TaskRepository;
 public class ImportCommand implements Command {
     private TaskRepository taskRepository;
     private String importSource;
+    private ImportData importData;
 
-    public ImportCommand() {}
+    public ImportCommand() {
+        this.importData = new ImportData();
+    }
 
     public ImportCommand(TaskRepository taskRepository, String importSource) {
         this.taskRepository = taskRepository;
         this.importSource = importSource;
+        this.importData = new ImportData();
+    }
+
+    public ImportCommand(TaskRepository taskRepository, String importSource, ImportData importData) {
+        this.taskRepository = taskRepository;
+        this.importSource = importSource;
+        this.importData = importData != null ? importData : new ImportData();
     }
 
     @Override
@@ -25,9 +40,20 @@ public class ImportCommand implements Command {
             throw new IllegalStateException("Import source cannot be null or empty");
         }
 
-        // Placeholder implementation - in a real system this would parse the source
-        // and create tasks in the repository
-        System.out.println("Importing tasks from: " + importSource);
+        try {
+            List<Task> tasks = importData.readTasksFromCsv(importSource);
+
+            for (Task task : tasks) {
+                if (task.getId() == null || task.getId().trim().isEmpty()) {
+                    task.setId(UUID.randomUUID().toString());
+                }
+                taskRepository.addTask(task);
+            }
+
+            System.out.println(tasks.size() + " task(s) imported from: " + importSource);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to import tasks from: " + importSource, e);
+        }
     }
 
     // Getters and setters
@@ -45,5 +71,13 @@ public class ImportCommand implements Command {
 
     public void setImportSource(String importSource) {
         this.importSource = importSource;
+    }
+
+    public ImportData getImportData() {
+        return importData;
+    }
+
+    public void setImportData(ImportData importData) {
+        this.importData = importData;
     }
 }
