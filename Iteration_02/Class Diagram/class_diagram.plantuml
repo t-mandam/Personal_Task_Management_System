@@ -1,6 +1,5 @@
 @startuml
 left to right direction
-
 class Task {
   -id : String
   -title : String
@@ -11,12 +10,6 @@ class Task {
   -status : Status
   -tags : List<Tag>
   -recurrence : Recurrence
-  +getTitle() : String
-  +getDescription() : String
-  +getCreationDate() : String
-  +getDueDate() : Date
-  +getPriority() : String
-  +getStatus() : String
   +completeTask() : boolean
   +cancelTask() : boolean
   +reopenTask() : boolean
@@ -56,7 +49,6 @@ Collaborator <|-- Senior
 class Assignment
 Assignment .. "*" Task
 Assignment .. "*" Collaborator
-
 Project -- "*" Collaborator
 
 interface TaskObserver {
@@ -92,7 +84,6 @@ class SortCommand {
   +setStrategy(strategy : SortStrategy)
   +sort(tasks : List<Task>)
 }
-
 SortCommand --> SortStrategy
 SortCommand --> TaskRepository
 
@@ -101,11 +92,13 @@ class TaskFactory {
   +createRecurringTask(title, recurrence) : Task
   +createSubtask(parent : Task) : Subtask
 }
+TaskFactory --> Task
 TaskFactory --> TaskRepository
 
 interface TaskRepository {
   +addTask(task : Task)
   +updateTask(task : Task)
+  +findById(id : Integer) : Task
   +findAll() : List<Task>
 }
 class TaskCatalog {
@@ -122,7 +115,9 @@ interface Command {
 class CreateTaskCommand
 class AssignCollaboratorCommand
 class ImportCommand
+class ImportData
 class ExportCommand
+class ExportData
 
 class UpdateTitleCommand {
   -task : Task
@@ -153,6 +148,7 @@ class UpdateTagsCommand {
   -tag: Tag
   +addTag()
   +removeTag()
+  +createTag(name: String)
 }
 
 Command <|.. CreateTaskCommand
@@ -175,9 +171,12 @@ UpdateStatusCommand --> TaskRepository
 UpdatePriorityCommand --> TaskRepository
 UpdateDueDateCommand --> TaskRepository
 UpdateTagsCommand --> TaskRepository
+UpdateTagsCommand --> Tag
 AssignCollaboratorCommand --> Assignment
 ImportCommand --> TaskRepository
+ImportCommand --> ImportData
 ExportCommand --> SearchCommand
+ExportCommand --> ExportData
 
 class SearchCommand {
   +search(repo : TaskRepository, criteria : Criteria)
@@ -209,7 +208,6 @@ SearchCriterion <|.. DayOfWeekCriterion
 class Console {
   +executeCommand(command : Command)
 }
-
 Console --> Command
 
 enum Priority {
