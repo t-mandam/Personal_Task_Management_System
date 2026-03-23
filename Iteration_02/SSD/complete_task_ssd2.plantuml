@@ -1,0 +1,30 @@
+@startuml
+title SSD - Complete Task (Success + Failure) - Iteration 1 + 2
+
+actor User
+participant "Personal Task Management System" as PTMS
+
+== Complete Task ==
+User -> PTMS: completeTask(taskID)
+
+alt Task/occurrence not found
+    PTMS --> User: displayError("Task not found")
+
+else Task already completed
+    PTMS --> User: displayError("Task is already completed")
+
+else Task is cancelled
+    PTMS --> User: displayError("Cancelled task cannot be completed")
+
+else Valid task/occurrence
+    alt Regular task or subtask
+        PTMS --> User: displayTaskCompleted(taskIdentifier, status="completed")
+    else Recurring task occurrence
+        PTMS --> User: displayOccurrenceCompleted(taskIdentifier, status="completed")
+        PTMS --> User: displayMessage("Future occurrences remain unchanged")
+    end
+
+    PTMS --> User: displayActivityLogged("Task completed")
+end
+
+@enduml
