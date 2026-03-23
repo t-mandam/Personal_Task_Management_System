@@ -1,0 +1,23 @@
+@startuml
+title SSD - View Task (Success + Failure) - Iteration 1 + 2
+
+actor User
+participant "Personal Task Management System" as PTMS
+
+== View Task ==
+User -> PTMS: viewTasks(criteria)
+
+alt Invalid criteria
+    PTMS --> User: displayError("Invalid search criteria")
+
+else No criteria specified
+    PTMS --> User: displayTaskList(openTasksSortedByDueDate)
+
+else Matching tasks found
+    PTMS --> User: displayTaskList(filteredTasks)
+
+else No matching tasks
+    PTMS --> User: displayMessage("No tasks found")
+end
+
+@enduml
