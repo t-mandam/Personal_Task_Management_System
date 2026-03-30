@@ -1,0 +1,270 @@
+@startuml
+left to right direction
+
+class Task {
+  -id : String
+  -title : String
+  -description : String
+  -creationDate : Date
+  -dueDate : Date
+  -priority : Priority
+  -status : Status
+  -tags : List<Tag>
+  -recurrence : Recurrence
+  +completeTask() : boolean
+  +cancelTask() : boolean
+  +reopenTask() : boolean
+}
+
+class Subtask {
+  -title : String
+  -status : Status
+}
+Task <|-- Subtask
+Task "1" *-- "*" Subtask
+
+class Tag {
+  -name : String
+}
+Task -- "*" Tag
+
+class Project {
+  -name : String
+  -description : String
+}
+Project -- "*" Task
+
+class Recurrence {
+  -type : RecurrenceType
+  -interval : int
+  -startDate : Date
+  -endDate : Date
+  -weekDays : List<int>
+  -dayOfMonth : int
+}
+Task "*" -- "0..1" Recurrence
+
+abstract class Collaborator {
+  #name : String
+  #openTaskLimit : int
+}
+class Junior
+class Intermediate
+class Senior
+Collaborator <|-- Junior
+Collaborator <|-- Intermediate
+Collaborator <|-- Senior
+
+class Assignment
+Task "1" -- "*" Assignment
+Collaborator "1" -- "*" Assignment
+Project -- "*" Collaborator
+
+interface TaskObserver {
+  +update(task : Task)
+}
+class ActivityLog {
+  -updates : List<Activity>
+}
+class Activity {
+  -timestamp : Date
+  -description : String
+}
+TaskObserver <|.. ActivityLog
+ActivityLog *-- Activity
+Task --> "*" TaskObserver : notifies
+Task "1" *-- "1" ActivityLog
+
+interface SortStrategy {
+  +sort(tasks : List<Task>) : List<Task>
+}
+class DueDateSort
+class PrioritySort
+class StatusSort
+class ProjectSort
+class TagSort
+SortStrategy <|.. DueDateSort
+SortStrategy <|.. PrioritySort
+SortStrategy <|.. StatusSort
+SortStrategy <|.. ProjectSort
+SortStrategy <|.. TagSort
+
+class SortCommand {
+  -strategy : SortStrategy
+  +setStrategy(strategy : SortStrategy)
+  +sort(tasks : List<Task>)
+}
+SortCommand --> SortStrategy
+SortCommand --> TaskRepository
+
+class TaskFactory {
+  +createTask(title) : Task
+  +createRecurringTask(title, recurrence) : Task
+  +createSubtask(parent : Task) : Subtask
+}
+TaskFactory --> Task
+TaskFactory --> TaskRepository
+
+interface TaskRepository {
+  +addTask(task : Task)
+  +updateTask(task : Task)
+  +findById(id : String) : Task
+  +findAll() : List<Task>
+}
+class TaskCatalog {
+  -taskCatalog : List<Task>
+}
+TaskRepository <|.. TaskCatalog
+TaskCatalog *-- Task
+
+interface CollaboratorRepository {
+  +findAll() : List<Collaborator>
+  +findOverloadedCollaborators() : List<Collaborator>
+}
+
+class CollaboratorCatalog {
+  -collaboratorCatalog : List<Collaborator>
+}
+CollaboratorRepository <|.. CollaboratorCatalog
+CollaboratorCatalog *-- Collaborator
+
+interface Command {
+  +execute()
+}
+
+class CreateTaskCommand
+class AssignCollaboratorCommand
+class ViewOverloadedCollaboratorsCommand
+class ImportCommand
+class ImportData
+class ExportCommand
+class ExportData
+class ICalendarGateway
+class ICalendarExportData
+
+class UpdateTitleCommand {
+  -task : Task
+  -newTitle : String
+  +execute()
+}
+class UpdateDescriptionCommand {
+  -task : Task
+  -newDescription : String
+  +execute()
+}
+class UpdateStatusCommand {
+  -task : Task
+  -newStatus : Status
+  +completeTask()
+  +cancelTask()
+  +reopenTask()
+}
+class UpdatePriorityCommand {
+  -task : Task
+  -newPriority : Priority
+  +execute()
+}
+class UpdateDueDateCommand {
+  -task : Task
+  -newDueDate : Date
+  +execute()
+}
+class UpdateTagsCommand {
+  -task : Task
+  -tag : Tag
+  +addTag()
+  +removeTag()
+  +createTag(name : String)
+}
+
+Command <|.. CreateTaskCommand
+Command <|.. AssignCollaboratorCommand
+Command <|.. ViewOverloadedCollaboratorsCommand
+Command <|.. ImportCommand
+Command <|.. ExportCommand
+Command <|.. SortCommand
+Command <|.. SearchCommand
+Command <|.. UpdateTitleCommand
+Command <|.. UpdateDescriptionCommand
+Command <|.. UpdateStatusCommand
+Command <|.. UpdatePriorityCommand
+Command <|.. UpdateDueDateCommand
+Command <|.. UpdateTagsCommand
+
+CreateTaskCommand --> TaskFactory
+UpdateTitleCommand --> TaskRepository
+UpdateDescriptionCommand --> TaskRepository
+UpdateStatusCommand --> TaskRepository
+UpdatePriorityCommand --> TaskRepository
+UpdateDueDateCommand --> TaskRepository
+UpdateTagsCommand --> TaskRepository
+UpdateTagsCommand --> Tag
+AssignCollaboratorCommand --> Assignment
+AssignCollaboratorCommand --> CollaboratorRepository
+ViewOverloadedCollaboratorsCommand --> CollaboratorRepository
+ImportCommand --> TaskRepository
+ImportCommand --> CollaboratorRepository
+ImportCommand --> ImportData
+ExportCommand --> SearchCommand
+ExportCommand --> ExportData
+ExportCommand --> ICalendarGateway
+ICalendarGateway --> ICalendarExportData
+
+class SearchCommand {
+  +search(repo : TaskRepository, criteria : List<SearchCriterion>) : List<Task>
+}
+interface SearchCriterion {
+  +matches(task : Task) : boolean
+}
+class KeywordCriterion {
+  -keyword : String
+}
+class DateCriterion {
+  -date : Date
+}
+class DateRangeCriterion {
+  -fromDate : Date
+  -toDate : Date
+}
+class StatusCriterion {
+  -status : Status
+}
+class DayOfWeekCriterion {
+  -day : int
+}
+class TagCriterion {
+  -tag : Tag
+}
+
+SearchCommand --> TaskRepository
+SearchCommand --> SearchCriterion
+SearchCriterion <|.. KeywordCriterion
+SearchCriterion <|.. DateCriterion
+SearchCriterion <|.. DateRangeCriterion
+SearchCriterion <|.. StatusCriterion
+SearchCriterion <|.. DayOfWeekCriterion
+SearchCriterion <|.. TagCriterion
+
+class Console {
+  +executeCommand(command : Command)
+}
+Console --> Command
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+enum Status {
+  OPEN
+  COMPLETED
+  CANCELLED
+}
+enum RecurrenceType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  WEEK_DAY
+}
+
+@enduml
