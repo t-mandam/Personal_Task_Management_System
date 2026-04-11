@@ -81,4 +81,8 @@ public class CollaboratorCatalog implements CollaboratorRepository {
     public int size() {
         return collaboratorCatalog.size();
     }
+
+    public void clear() {
+        collaboratorCatalog.clear();
+    }
 }

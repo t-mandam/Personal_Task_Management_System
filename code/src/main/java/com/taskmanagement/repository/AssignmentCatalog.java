@@ -103,6 +103,10 @@ public class AssignmentCatalog implements AssignmentRepository {
         return assignmentCatalog.size();
     }
 
+    public void clear() {
+        assignmentCatalog.clear();
+    }
+
     private Assignment findByTaskAndCollaborator(String taskId, String collaboratorName) {
         if (taskId == null || taskId.trim().isEmpty() || collaboratorName == null || collaboratorName.trim().isEmpty()) {
             return null;

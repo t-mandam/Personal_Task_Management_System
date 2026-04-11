@@ -114,6 +114,29 @@ public class CollaboratorTableDataGateway {
     }
 
     /**
+     * Finds a collaborator's ID by name.
+     * @param name the collaborator name
+     * @return collaborator ID if found, null otherwise
+     * @throws SQLException if database operation fails
+     */
+    public String findIdByName(String name) throws SQLException {
+        String sql = "SELECT id FROM collaborators WHERE name = ?";
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, name);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("id");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Retrieves all collaborators from the database
      * @return a list of all collaborators
      * @throws SQLException if database operation fails

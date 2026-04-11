@@ -67,6 +67,29 @@ public class TagTableDataGateway {
     }
 
     /**
+     * Finds a tag's ID by name.
+     * @param name the tag name
+     * @return the tag ID if found, null otherwise
+     * @throws SQLException if database operation fails
+     */
+    public String findIdByName(String name) throws SQLException {
+        String sql = "SELECT id FROM tags WHERE name = ?";
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, name);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("id");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Retrieves all tags from the database
      * @return a list of all tags
      * @throws SQLException if database operation fails

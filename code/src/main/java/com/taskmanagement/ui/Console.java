@@ -1,10 +1,12 @@
 package com.taskmanagement.ui;
 
 import com.taskmanagement.command.*;
+import com.taskmanagement.persistence.AppPersistenceManager;
 import com.taskmanagement.ui.parser.*;
 import java.util.Scanner;
 
 public class Console {
+    private final AppPersistenceManager persistenceManager;
     private final CreateTaskCommandParser createTaskCommandParser;
     private final CreateTagCommandParser createTagCommandParser;
     private final CreateProjectCommandParser createProjectCommandParser;
@@ -17,6 +19,11 @@ public class Console {
     private final SearchTaskCommandParser searchTaskCommandParser;
 
     public Console() {
+        this(new AppPersistenceManager());
+    }
+
+    public Console(AppPersistenceManager persistenceManager) {
+        this.persistenceManager = persistenceManager;
         this.createTaskCommandParser = new CreateTaskCommandParser();
         this.createTagCommandParser = new CreateTagCommandParser();
         this.createProjectCommandParser = new CreateProjectCommandParser();
@@ -32,13 +39,22 @@ public class Console {
     public void executeCommand(Command command) {
         if (command != null) {
             command.execute();
+            if (isStateChangingCommand(command)) {
+                persistenceManager.saveToDatabase();
+            }
         }
+    }
+
+    private boolean isStateChangingCommand(Command command) {
+        String className = command.getClass().getSimpleName();
+        return className.startsWith("Create")
+                || className.startsWith("Update")
+                || className.startsWith("Assign")
+                || className.startsWith("Add");
     }
 
     public void start() {
         Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Personal Task Management CLI");
         HelpPrinter.printGeneralHelp();
 
         while (true) {
@@ -176,7 +192,7 @@ public class Console {
         return listCollaboratorsCommandParser.parse(args);
     }
 
-    public static void main(String[] args) {
-        new Console().start();
+    public void initialize() {
+        persistenceManager.loadFromDatabase();
     }
 }

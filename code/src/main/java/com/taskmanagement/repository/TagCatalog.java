@@ -53,4 +53,8 @@ public class TagCatalog implements TagRepository {
     public List<Tag> findAll() {
         return new ArrayList<>(tagCatalog);
     }
+
+    public void clear() {
+        tagCatalog.clear();
+    }
 }

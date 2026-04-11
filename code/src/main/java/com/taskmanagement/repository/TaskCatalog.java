@@ -73,4 +73,8 @@ public class TaskCatalog implements TaskRepository {
     public int size() {
         return taskCatalog.size();
     }
+
+    public void clear() {
+        taskCatalog.clear();
+    }
 }

@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -69,7 +72,7 @@ public class DatabaseConnection {
         if (connection == null) {
             throw new RuntimeException("Database connection is not available");
         }
-        return connection;
+        return createCloseSafeProxy(connection);
     }
 
     /**
@@ -155,5 +158,23 @@ public class DatabaseConnection {
         } catch (SQLException e) {
             return false;
         }
+    }
+
+    private Connection createCloseSafeProxy(Connection delegate) {
+        InvocationHandler handler = new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                if ("close".equals(method.getName()) && method.getParameterCount() == 0) {
+                    return null;
+                }
+                return method.invoke(delegate, args);
+            }
+        };
+
+        return (Connection) Proxy.newProxyInstance(
+                Connection.class.getClassLoader(),
+                new Class<?>[]{Connection.class},
+                handler
+        );
     }
 }

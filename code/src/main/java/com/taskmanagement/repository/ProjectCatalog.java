@@ -81,4 +81,8 @@ public class ProjectCatalog implements ProjectRepository {
     public int size() {
         return projectCatalog.size();
     }
+
+    public void clear() {
+        projectCatalog.clear();
+    }
 }

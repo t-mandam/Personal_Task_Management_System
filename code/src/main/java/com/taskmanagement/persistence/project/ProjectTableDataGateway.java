@@ -114,6 +114,29 @@ public class ProjectTableDataGateway {
     }
 
     /**
+     * Finds a project's ID by its name.
+     * @param name the project name
+     * @return the project ID if found, null otherwise
+     * @throws SQLException if database operation fails
+     */
+    public String findIdByName(String name) throws SQLException {
+        String sql = "SELECT id FROM projects WHERE name = ?";
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, name);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("id");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Retrieves all projects from the database
      * @return a list of all projects
      * @throws SQLException if database operation fails
