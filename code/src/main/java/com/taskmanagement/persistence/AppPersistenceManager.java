@@ -114,7 +114,7 @@ public class AppPersistenceManager {
             linkTaskTags(tagCatalog, tasksById);
             linkProjectCollaborators(projectsById, collaboratorsById);
             loadAssignments(assignmentCatalog, tasksById, collaboratorsById);
-            synchronizeIdGenerator(taskCatalog, projectsById, tagCatalog, collaboratorCatalog);
+            synchronizeIdGenerator(taskCatalog);
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to load state from database", ex);
         }
@@ -307,55 +307,12 @@ public class AppPersistenceManager {
         }
     }
 
-    private void synchronizeIdGenerator(TaskCatalog taskCatalog,
-                                        Map<String, Project> projectsById,
-                                        TagCatalog tagCatalog,
-                                        CollaboratorCatalog collaboratorCatalog) throws SQLException {
-        long maxId = 0L;
-
-        maxId = Math.max(maxId, maxNumericId(taskCatalog.findAll().stream().map(Task::getId).toList()));
-        maxId = Math.max(maxId, maxNumericId(projectIdsByName.values()));
-        maxId = Math.max(maxId, maxNumericId(tagIdsByName.values()));
-        maxId = Math.max(maxId, maxNumericId(collaboratorIdsByName.values()));
-        maxId = Math.max(maxId, maxNumericId(fetchAssignmentIds()));
-
-        SimpleIdGenerator.initializeAtLeast(maxId);
-    }
-
-    private List<String> fetchAssignmentIds() throws SQLException {
-        List<String> assignmentIds = new java.util.ArrayList<>();
-        for (Map<String, String> row : assignmentGateway.findAll()) {
-            if (row == null) {
-                continue;
-            }
-
-            assignmentIds.add(row.get("id"));
-        }
-        return assignmentIds;
-    }
-
-    private long maxNumericId(Iterable<String> ids) {
-        long max = 0L;
-        if (ids == null) {
-            return max;
-        }
-
-        for (String id : ids) {
-            if (id == null || id.trim().isEmpty()) {
-                continue;
-            }
-
-            try {
-                long value = Long.parseLong(id.trim());
-                if (value > max) {
-                    max = value;
-                }
-            } catch (NumberFormatException ignored) {
-                // Ignore non-numeric identifiers.
+    private void synchronizeIdGenerator(TaskCatalog taskCatalog) {
+        for (Task task : taskCatalog.findAll()) {
+            if (task != null) {
+                SimpleIdGenerator.initializeFromId(task.getId());
             }
         }
-
-        return max;
     }
 
     private void upsertProjects() throws SQLException {

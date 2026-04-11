@@ -17,7 +17,6 @@ import com.taskmanagement.repository.ProjectCatalog;
 import com.taskmanagement.repository.ProjectRepository;
 import com.taskmanagement.repository.TaskCatalog;
 import com.taskmanagement.repository.TaskRepository;
-import com.taskmanagement.util.SimpleIdGenerator;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -116,7 +115,7 @@ public class ImportCommand implements Command {
 
                 Task task = importedRow.getTask();
                 if (task.getId() == null || task.getId().trim().isEmpty()) {
-                    task.setId(SimpleIdGenerator.nextId());
+                    task.setId(nextTaskId());
                 }
 
                 if (task.getProject() != null && projectRepository != null) {
@@ -294,6 +293,27 @@ public class ImportCommand implements Command {
 
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String nextTaskId() {
+        long maxTaskId = 0L;
+
+        for (Task existingTask : taskRepository.findAll()) {
+            if (existingTask == null || existingTask.getId() == null || existingTask.getId().trim().isEmpty()) {
+                continue;
+            }
+
+            try {
+                long parsedId = Long.parseLong(existingTask.getId().trim());
+                if (parsedId > maxTaskId) {
+                    maxTaskId = parsedId;
+                }
+            } catch (NumberFormatException ignored) {
+                // Ignore non-numeric task IDs while finding the next numeric task ID.
+            }
+        }
+
+        return String.valueOf(maxTaskId + 1);
     }
 
     private Project resolveOrCreateProject(Project importedProject) {

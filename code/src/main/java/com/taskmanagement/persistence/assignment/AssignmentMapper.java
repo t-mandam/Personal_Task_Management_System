@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.taskmanagement.util.SimpleIdGenerator;
+import com.taskmanagement.util.EntityIdGenerator;
 
 /**
  * Maps Assignment domain objects to/from database rows
@@ -35,7 +35,7 @@ public class AssignmentMapper {
      */
     public Object[] getInsertValues(String taskId, String collaboratorId) {
         return new Object[]{
-            SimpleIdGenerator.nextId(),
+            EntityIdGenerator.nextId(),
             taskId,
             collaboratorId
         };

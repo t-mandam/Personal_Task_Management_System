@@ -1,7 +1,7 @@
 package com.taskmanagement.persistence.project;
 
 import com.taskmanagement.domain.Project;
-import com.taskmanagement.util.SimpleIdGenerator;
+import com.taskmanagement.util.EntityIdGenerator;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -45,7 +45,7 @@ public class ProjectMapper {
      */
     public Object[] getInsertValues(Project project) {
         return new Object[]{
-            SimpleIdGenerator.nextId(),
+            EntityIdGenerator.nextId(),
             project.getName(),
             project.getDescription()
         };

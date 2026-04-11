@@ -176,7 +176,27 @@ public class TaskFactory {
      * @return a unique ID string
      */
     private String generateUniqueId() {
-        return SimpleIdGenerator.nextId();
+        if (taskRepository == null) {
+            return SimpleIdGenerator.nextId();
+        }
+
+        long maxTaskId = 0L;
+        for (Task existingTask : taskRepository.findAll()) {
+            if (existingTask == null || existingTask.getId() == null || existingTask.getId().trim().isEmpty()) {
+                continue;
+            }
+
+            try {
+                long parsed = Long.parseLong(existingTask.getId().trim());
+                if (parsed > maxTaskId) {
+                    maxTaskId = parsed;
+                }
+            } catch (NumberFormatException ignored) {
+                // Ignore non-numeric IDs while finding the next numeric task ID.
+            }
+        }
+
+        return String.valueOf(maxTaskId + 1);
     }
 
     // Getters and setters
