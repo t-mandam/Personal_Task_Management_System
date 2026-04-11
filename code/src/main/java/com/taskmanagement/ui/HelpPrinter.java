@@ -18,6 +18,7 @@ public final class HelpPrinter {
         System.out.println("create-collaborator");
         System.out.println("assign-collaborator");
         System.out.println("list-collaborators");
+        System.out.println("import");
         System.out.println("update-task");
         System.out.println("search-task");
         System.out.println("help");
@@ -101,6 +102,12 @@ public final class HelpPrinter {
                 System.out.println("  date-range <from-yyyy-MM-dd> <to-yyyy-MM-dd>");
                 System.out.println("  weekday <1-7|sun|mon|...|sat>");
                 System.out.println("Example: search-task keyword report | status OPEN | date-range 2026-04-01 2026-04-30");
+                break;
+
+            case "import":
+                System.out.println("import <csv-file-path>");
+                System.out.println("Expected CSV columns:");
+                System.out.println("  TaskName, Description, Subtask, Status, Priority, DueDate, ProjectName, ProjectDescription, Collaborator, CollaboratorCategory");
                 break;
 
             case "help":
