@@ -12,11 +12,12 @@ public final class HelpPrinter {
         System.out.println("\n=== Available Commands ===");
         System.out.println("create-task");
         System.out.println("create-tag");
+        System.out.println("create-collaborator");
+        System.out.println("assign-collaborator");
+        System.out.println("list-collaborators");
         System.out.println("update-task");
         System.out.println("search-task");
         System.out.println("help");
-        System.out.println("exit");
-        System.out.println("quit");
         System.out.println();
         System.out.println("Type 'help <command-name>' to see command signature and details.");
         System.out.println();
@@ -49,6 +50,24 @@ public final class HelpPrinter {
             case "create-tag":
                 System.out.println("create-tag <tag-name>");
                 System.out.println("Creates a reusable tag for task updates.");
+                break;
+
+            case "create-collaborator":
+                System.out.println("create-collaborator <type> <name>");
+                System.out.println("Types: junior, intermediate, senior");
+                break;
+
+            case "assign-collaborator":
+                System.out.println("assign-collaborator <task-id> <collaborator-name>");
+                System.out.println("Assigns an existing collaborator to an existing task.");
+                System.out.println("Task must be in OPEN status to be assigned.");
+                System.out.println("Automatically creates a linked subtask named: '<collaborator-name> - <task-title>'");
+                System.out.println("Open-task limits apply based on collaborator level.");
+                break;
+
+            case "list-collaborators":
+                System.out.println("list-collaborators");
+                System.out.println("Lists all saved collaborators.");
                 break;
 
             case "search-task":

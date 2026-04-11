@@ -14,7 +14,7 @@ public interface AssignmentRepository {
 
     void removeAssignment(Assignment assignment);
 
-    Assignment findByTaskId(String taskId);
+    List<Assignment> findByTaskId(String taskId);
 
     List<Assignment> findByCollaboratorName(String collaboratorName);
 

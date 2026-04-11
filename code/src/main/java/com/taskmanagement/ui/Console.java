@@ -6,12 +6,18 @@ import java.util.Scanner;
 public class Console {
     private final CreateTaskCommandParser createTaskCommandParser;
     private final CreateTagCommandParser createTagCommandParser;
+    private final CreateCollaboratorCommandParser createCollaboratorCommandParser;
+    private final AssignCollaboratorCommandParser assignCollaboratorCommandParser;
+    private final ListCollaboratorsCommandParser listCollaboratorsCommandParser;
     private final UpdateTaskCommandParser updateTaskCommandParser;
     private final SearchTaskCommandParser searchTaskCommandParser;
 
     public Console() {
         this.createTaskCommandParser = new CreateTaskCommandParser();
         this.createTagCommandParser = new CreateTagCommandParser();
+        this.createCollaboratorCommandParser = new CreateCollaboratorCommandParser();
+        this.assignCollaboratorCommandParser = new AssignCollaboratorCommandParser();
+        this.listCollaboratorsCommandParser = new ListCollaboratorsCommandParser();
         this.updateTaskCommandParser = new UpdateTaskCommandParser();
         this.searchTaskCommandParser = new SearchTaskCommandParser();
     }
@@ -72,6 +78,18 @@ public class Console {
                     command = parseCreateTag(args);
                     break;
 
+                case "create-collaborator":
+                    command = parseCreateCollaborator(args);
+                    break;
+
+                case "assign-collaborator":
+                    command = parseAssignCollaborator(args);
+                    break;
+
+                case "list-collaborators":
+                    command = parseListCollaborators(args);
+                    break;
+
                 case "search-task":
                     command = parseSearchTask(args);
                     break;
@@ -113,6 +131,18 @@ public class Console {
 
     private Command parseCreateTag(String args) {
         return createTagCommandParser.parse(args);
+    }
+
+    private Command parseCreateCollaborator(String args) {
+        return createCollaboratorCommandParser.parse(args);
+    }
+
+    private Command parseAssignCollaborator(String args) {
+        return assignCollaboratorCommandParser.parse(args);
+    }
+
+    private Command parseListCollaborators(String args) {
+        return listCollaboratorsCommandParser.parse(args);
     }
 
     public static void main(String[] args) {

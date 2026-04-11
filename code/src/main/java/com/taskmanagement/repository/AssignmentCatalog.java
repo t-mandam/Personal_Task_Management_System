@@ -23,8 +23,11 @@ public class AssignmentCatalog implements AssignmentRepository {
     @Override
     public void addAssignment(Assignment assignment) {
         validateAssignment(assignment);
-        if (findByTaskId(assignment.getTask().getId()) != null) {
-            throw new IllegalArgumentException("Task already has an assignment: " + assignment.getTask().getId());
+        if (findByTaskAndCollaborator(assignment.getTask().getId(), assignment.getCollaborator().getName()) != null) {
+            throw new IllegalArgumentException(
+                    "Assignment already exists for task '" + assignment.getTask().getId()
+                            + "' and collaborator '" + assignment.getCollaborator().getName() + "'"
+            );
         }
         assignmentCatalog.add(assignment);
     }
@@ -33,16 +36,19 @@ public class AssignmentCatalog implements AssignmentRepository {
     public void updateAssignment(Assignment assignment) {
         validateAssignment(assignment);
         String taskId = assignment.getTask().getId();
+        String collaboratorName = assignment.getCollaborator().getName();
 
         for (int i = 0; i < assignmentCatalog.size(); i++) {
             Assignment existing = assignmentCatalog.get(i);
-            if (hasSameTaskId(existing, taskId)) {
+            if (hasSameTaskAndCollaborator(existing, taskId, collaboratorName)) {
                 assignmentCatalog.set(i, assignment);
                 return;
             }
         }
 
-        throw new IllegalArgumentException("Assignment not found for task ID: " + taskId);
+        throw new IllegalArgumentException(
+                "Assignment not found for task ID '" + taskId + "' and collaborator '" + collaboratorName + "'"
+        );
     }
 
     @Override
@@ -53,18 +59,19 @@ public class AssignmentCatalog implements AssignmentRepository {
     }
 
     @Override
-    public Assignment findByTaskId(String taskId) {
+    public List<Assignment> findByTaskId(String taskId) {
+        List<Assignment> matches = new ArrayList<>();
         if (taskId == null || taskId.trim().isEmpty()) {
-            return null;
+            return matches;
         }
 
         for (Assignment assignment : assignmentCatalog) {
             if (hasSameTaskId(assignment, taskId)) {
-                return assignment;
+                matches.add(assignment);
             }
         }
 
-        return null;
+        return matches;
     }
 
     @Override
@@ -96,6 +103,20 @@ public class AssignmentCatalog implements AssignmentRepository {
         return assignmentCatalog.size();
     }
 
+    private Assignment findByTaskAndCollaborator(String taskId, String collaboratorName) {
+        if (taskId == null || taskId.trim().isEmpty() || collaboratorName == null || collaboratorName.trim().isEmpty()) {
+            return null;
+        }
+
+        for (Assignment assignment : assignmentCatalog) {
+            if (hasSameTaskAndCollaborator(assignment, taskId, collaboratorName)) {
+                return assignment;
+            }
+        }
+
+        return null;
+    }
+
     private void validateAssignment(Assignment assignment) {
         if (assignment == null) {
             throw new IllegalArgumentException("Assignment cannot be null");
@@ -113,5 +134,12 @@ public class AssignmentCatalog implements AssignmentRepository {
                 && assignment.getTask() != null
                 && assignment.getTask().getId() != null
                 && assignment.getTask().getId().equals(taskId.trim());
+    }
+
+    private boolean hasSameTaskAndCollaborator(Assignment assignment, String taskId, String collaboratorName) {
+        return hasSameTaskId(assignment, taskId)
+                && assignment.getCollaborator() != null
+                && assignment.getCollaborator().getName() != null
+                && assignment.getCollaborator().getName().trim().equalsIgnoreCase(collaboratorName.trim());
     }
 }
