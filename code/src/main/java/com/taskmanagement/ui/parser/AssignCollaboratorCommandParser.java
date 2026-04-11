@@ -1,4 +1,4 @@
-package com.taskmanagement.ui;
+package com.taskmanagement.ui.parser;
 
 import com.taskmanagement.command.AssignCollaboratorCommand;
 import com.taskmanagement.command.Command;

@@ -12,6 +12,9 @@ public final class HelpPrinter {
         System.out.println("\n=== Available Commands ===");
         System.out.println("create-task");
         System.out.println("create-tag");
+        System.out.println("create-project");
+        System.out.println("list-projects");
+        System.out.println("add-task-to-project");
         System.out.println("create-collaborator");
         System.out.println("assign-collaborator");
         System.out.println("list-collaborators");
@@ -52,6 +55,21 @@ public final class HelpPrinter {
                 System.out.println("Creates a reusable tag for task updates.");
                 break;
 
+            case "create-project":
+                System.out.println("create-project <project-name> [| <description>]");
+                System.out.println("Creates a project with optional description.");
+                break;
+
+            case "list-projects":
+                System.out.println("list-projects");
+                System.out.println("Lists all saved projects.");
+                break;
+
+            case "add-task-to-project":
+                System.out.println("add-task-to-project <task-id> <project-name>");
+                System.out.println("Adds an existing task to an existing project.");
+                break;
+
             case "create-collaborator":
                 System.out.println("create-collaborator <type> <name>");
                 System.out.println("Types: junior, intermediate, senior");
@@ -61,6 +79,7 @@ public final class HelpPrinter {
                 System.out.println("assign-collaborator <task-id> <collaborator-name>");
                 System.out.println("Assigns an existing collaborator to an existing task.");
                 System.out.println("Task must be in OPEN status to be assigned.");
+                System.out.println("Task must already be part of a project.");
                 System.out.println("Automatically creates a linked subtask named: '<collaborator-name> - <task-title>'");
                 System.out.println("Open-task limits apply based on collaborator level.");
                 break;

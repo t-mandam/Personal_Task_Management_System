@@ -1,11 +1,15 @@
 package com.taskmanagement.ui;
 
 import com.taskmanagement.command.*;
+import com.taskmanagement.ui.parser.*;
 import java.util.Scanner;
 
 public class Console {
     private final CreateTaskCommandParser createTaskCommandParser;
     private final CreateTagCommandParser createTagCommandParser;
+    private final CreateProjectCommandParser createProjectCommandParser;
+    private final ListProjectsCommandParser listProjectsCommandParser;
+    private final AddTaskToProjectCommandParser addTaskToProjectCommandParser;
     private final CreateCollaboratorCommandParser createCollaboratorCommandParser;
     private final AssignCollaboratorCommandParser assignCollaboratorCommandParser;
     private final ListCollaboratorsCommandParser listCollaboratorsCommandParser;
@@ -15,6 +19,9 @@ public class Console {
     public Console() {
         this.createTaskCommandParser = new CreateTaskCommandParser();
         this.createTagCommandParser = new CreateTagCommandParser();
+        this.createProjectCommandParser = new CreateProjectCommandParser();
+        this.listProjectsCommandParser = new ListProjectsCommandParser();
+        this.addTaskToProjectCommandParser = new AddTaskToProjectCommandParser();
         this.createCollaboratorCommandParser = new CreateCollaboratorCommandParser();
         this.assignCollaboratorCommandParser = new AssignCollaboratorCommandParser();
         this.listCollaboratorsCommandParser = new ListCollaboratorsCommandParser();
@@ -78,6 +85,18 @@ public class Console {
                     command = parseCreateTag(args);
                     break;
 
+                case "create-project":
+                    command = parseCreateProject(args);
+                    break;
+
+                case "list-projects":
+                    command = parseListProjects(args);
+                    break;
+
+                case "add-task-to-project":
+                    command = parseAddTaskToProject(args);
+                    break;
+
                 case "create-collaborator":
                     command = parseCreateCollaborator(args);
                     break;
@@ -131,6 +150,18 @@ public class Console {
 
     private Command parseCreateTag(String args) {
         return createTagCommandParser.parse(args);
+    }
+
+    private Command parseCreateProject(String args) {
+        return createProjectCommandParser.parse(args);
+    }
+
+    private Command parseListProjects(String args) {
+        return listProjectsCommandParser.parse(args);
+    }
+
+    private Command parseAddTaskToProject(String args) {
+        return addTaskToProjectCommandParser.parse(args);
     }
 
     private Command parseCreateCollaborator(String args) {

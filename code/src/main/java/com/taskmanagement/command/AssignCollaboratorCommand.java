@@ -4,6 +4,7 @@ import com.taskmanagement.domain.Assignment;
 import com.taskmanagement.domain.Collaborator;
 import com.taskmanagement.domain.Intermediate;
 import com.taskmanagement.domain.Junior;
+import com.taskmanagement.domain.Project;
 import com.taskmanagement.domain.Senior;
 import com.taskmanagement.domain.Subtask;
 import com.taskmanagement.domain.Task;
@@ -13,6 +14,8 @@ import com.taskmanagement.repository.AssignmentCatalog;
 import com.taskmanagement.repository.AssignmentRepository;
 import com.taskmanagement.repository.CollaboratorCatalog;
 import com.taskmanagement.repository.CollaboratorRepository;
+import com.taskmanagement.repository.ProjectCatalog;
+import com.taskmanagement.repository.ProjectRepository;
 import com.taskmanagement.repository.TaskCatalog;
 import com.taskmanagement.repository.TaskRepository;
 
@@ -26,17 +29,20 @@ public class AssignCollaboratorCommand implements Command {
     private final AssignmentRepository assignmentRepository;
     private final TaskRepository taskRepository;
     private final CollaboratorRepository collaboratorRepository;
+    private final ProjectRepository projectRepository;
     private final TaskFactory taskFactory;
     private final String taskId;
     private final String collaboratorName;
 
     public AssignCollaboratorCommand() {
-        this(AssignmentCatalog.getInstance(), TaskCatalog.getInstance(), CollaboratorCatalog.getInstance(), 
+        this(AssignmentCatalog.getInstance(), TaskCatalog.getInstance(), CollaboratorCatalog.getInstance(),
+             ProjectCatalog.getInstance(),
              new TaskFactory(TaskCatalog.getInstance()), null, null);
     }
 
     public AssignCollaboratorCommand(String taskId, String collaboratorName) {
         this(AssignmentCatalog.getInstance(), TaskCatalog.getInstance(), CollaboratorCatalog.getInstance(),
+             ProjectCatalog.getInstance(),
              new TaskFactory(TaskCatalog.getInstance()), taskId, collaboratorName);
     }
 
@@ -46,9 +52,20 @@ public class AssignCollaboratorCommand implements Command {
                                      TaskFactory taskFactory,
                                      String taskId,
                                      String collaboratorName) {
+        this(assignmentRepository, taskRepository, collaboratorRepository, ProjectCatalog.getInstance(), taskFactory, taskId, collaboratorName);
+    }
+
+    public AssignCollaboratorCommand(AssignmentRepository assignmentRepository,
+                                     TaskRepository taskRepository,
+                                     CollaboratorRepository collaboratorRepository,
+                                     ProjectRepository projectRepository,
+                                     TaskFactory taskFactory,
+                                     String taskId,
+                                     String collaboratorName) {
         this.assignmentRepository = assignmentRepository;
         this.taskRepository = taskRepository;
         this.collaboratorRepository = collaboratorRepository;
+        this.projectRepository = projectRepository;
         this.taskFactory = taskFactory;
         this.taskId = taskId;
         this.collaboratorName = collaboratorName;
@@ -64,6 +81,9 @@ public class AssignCollaboratorCommand implements Command {
         }
         if (collaboratorRepository == null) {
             throw new IllegalStateException("Collaborator repository cannot be null");
+        }
+        if (projectRepository == null) {
+            throw new IllegalStateException("Project repository cannot be null");
         }
 
         if (taskId == null || taskId.trim().isEmpty()) {
@@ -86,6 +106,12 @@ public class AssignCollaboratorCommand implements Command {
         if (task.getStatus() != Status.OPEN) {
             throw new IllegalArgumentException(
                     "Task '" + task.getId() + "' cannot be assigned because it is not OPEN. Current status: " + task.getStatus()
+            );
+        }
+
+        if (!isTaskInAnyProject(task.getId())) {
+            throw new IllegalArgumentException(
+                "Task '" + task.getId() + "' cannot be assigned because it is not part of any project"
             );
         }
 
@@ -150,6 +176,29 @@ public class AssignCollaboratorCommand implements Command {
         return Integer.MAX_VALUE;
     }
 
+    private boolean isTaskInAnyProject(String taskId) {
+        if (taskId == null || taskId.trim().isEmpty()) {
+            return false;
+        }
+
+        String normalizedTaskId = taskId.trim();
+        for (Project project : projectRepository.findAll()) {
+            if (project == null || project.getTasks() == null) {
+                continue;
+            }
+
+            for (Task projectTask : project.getTasks()) {
+                if (projectTask != null
+                        && projectTask.getId() != null
+                        && projectTask.getId().trim().equals(normalizedTaskId)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public AssignmentRepository getAssignmentRepository() {
         return assignmentRepository;
     }
@@ -160,6 +209,10 @@ public class AssignCollaboratorCommand implements Command {
 
     public CollaboratorRepository getCollaboratorRepository() {
         return collaboratorRepository;
+    }
+
+    public ProjectRepository getProjectRepository() {
+        return projectRepository;
     }
 
     public String getTaskId() {
