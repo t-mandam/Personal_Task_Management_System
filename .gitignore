@@ -10,7 +10,7 @@ data/
 *.sqlite3
 
 # Test CSV fixture for import validation
-code/import_tasks_test.csv
+code/src/main/java/com/taskmanagement/import_tasks_test.csv
 
 # Logs
 *.log

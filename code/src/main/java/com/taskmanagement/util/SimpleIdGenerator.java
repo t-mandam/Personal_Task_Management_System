@@ -14,4 +14,20 @@ public final class SimpleIdGenerator {
     public static String nextId() {
         return String.valueOf(COUNTER.incrementAndGet());
     }
+
+    public static void initializeAtLeast(long minimumValue) {
+        COUNTER.updateAndGet(currentValue -> Math.max(currentValue, minimumValue));
+    }
+
+    public static void initializeFromId(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            initializeAtLeast(Long.parseLong(id.trim()));
+        } catch (NumberFormatException ignored) {
+            // Keep the counter unchanged for non-numeric identifiers.
+        }
+    }
 }
