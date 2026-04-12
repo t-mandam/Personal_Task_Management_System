@@ -17,6 +17,7 @@ import com.taskmanagement.search.TagCriterion;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -24,16 +25,20 @@ import java.util.List;
  * Parses CLI arguments for search-task command.
  */
 public class SearchTaskCommandParser {
+    private boolean hasExecutedSearch;
+    private List<Task> lastSearchResults = new ArrayList<>();
 
     public Command parse(String args) {
-        boolean hasArgs = args != null && !args.trim().isEmpty();
-        String normalizedArgs = hasArgs ? args : "";
+        String normalizedArgs = args == null ? "" : args.trim();
+        boolean hasCriteria = !normalizedArgs.isEmpty();
 
         SearchCommand searchCommand = new SearchCommand(TaskCatalog.getInstance());
-        if (hasArgs) {
+        if (hasCriteria) {
             for (SearchCriterion criterion : parseCriteria(normalizedArgs)) {
                 searchCommand.addCriterion(criterion);
             }
+        } else {
+            searchCommand.addCriterion(new StatusCriterion(Status.OPEN));
         }
 
         return new Command() {
@@ -41,12 +46,15 @@ public class SearchTaskCommandParser {
             public void execute() {
                 searchCommand.execute();
                 List<Task> results = searchCommand.getSearchResults();
-                if (!hasArgs) {
+                if (!hasCriteria) {
                     results.sort(Comparator
                             .comparing(Task::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))
                             .thenComparing(task -> safe(task.getTitle()), String.CASE_INSENSITIVE_ORDER)
                             .thenComparing(task -> safe(task.getId()), String.CASE_INSENSITIVE_ORDER));
                 }
+
+                hasExecutedSearch = true;
+                lastSearchResults = new ArrayList<>(results);
                 printResults(results);
             }
         };
@@ -239,7 +247,7 @@ public class SearchTaskCommandParser {
 
     private String getUsage() {
         return "Usage: search-task [<mode> <args> [| <mode> <args> ...]]\n" +
-            "No args: lists all tasks sorted by due date (ascending)\n" +
+            "No args: lists OPEN tasks sorted by due date (ascending)\n" +
             "Modes:\n" +
             "  keyword <text>\n" +
             "  tag <tag-name>\n" +
@@ -250,5 +258,13 @@ public class SearchTaskCommandParser {
             "  weekday <1-7|sun|mon|...|sat>\n" +
             "Example:\n" +
             "  search-task keyword report | status OPEN | date-range 2026-04-01 2026-04-30";
+    }
+
+    public boolean hasExecutedSearch() {
+        return hasExecutedSearch;
+    }
+
+    public List<Task> getLastSearchResults() {
+        return Collections.unmodifiableList(lastSearchResults);
     }
 }

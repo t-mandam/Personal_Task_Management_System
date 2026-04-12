@@ -1,9 +1,12 @@
 package com.taskmanagement.command;
 
 import com.taskmanagement.domain.Task;
+import com.taskmanagement.repository.AssignmentCatalog;
+import com.taskmanagement.repository.AssignmentRepository;
 import com.taskmanagement.repository.TaskRepository;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,6 +16,9 @@ public class ExportCommand implements Command {
     private TaskRepository taskRepository;
     private String exportDestination;
     private ExportData exportData = new ExportData();
+    private AssignmentRepository assignmentRepository = AssignmentCatalog.getInstance();
+    private List<Task> tasksOverride;
+    private boolean useImportCsvFormat;
 
     public ExportCommand() {}
 
@@ -37,8 +43,12 @@ public class ExportCommand implements Command {
         }
 
         try {
-            List<Task> tasksToExport = taskRepository.findAll();
-            exportData.writeTasksToCsv(exportDestination, tasksToExport);
+            List<Task> tasksToExport = tasksOverride != null ? new ArrayList<>(tasksOverride) : taskRepository.findAll();
+            if (useImportCsvFormat) {
+                exportData.writeTasksToImportCsv(exportDestination, tasksToExport, assignmentRepository);
+            } else {
+                exportData.writeTasksToCsv(exportDestination, tasksToExport);
+            }
 
             System.out.println(tasksToExport.size() + " task(s) exported to: " + exportDestination);
         } catch (IOException e) {
@@ -68,5 +78,29 @@ public class ExportCommand implements Command {
 
     public void setExportData(ExportData exportData) {
         this.exportData = exportData;
+    }
+
+    public AssignmentRepository getAssignmentRepository() {
+        return assignmentRepository;
+    }
+
+    public void setAssignmentRepository(AssignmentRepository assignmentRepository) {
+        this.assignmentRepository = assignmentRepository;
+    }
+
+    public List<Task> getTasksOverride() {
+        return tasksOverride == null ? null : new ArrayList<>(tasksOverride);
+    }
+
+    public void setTasksOverride(List<Task> tasksOverride) {
+        this.tasksOverride = tasksOverride == null ? null : new ArrayList<>(tasksOverride);
+    }
+
+    public boolean isUseImportCsvFormat() {
+        return useImportCsvFormat;
+    }
+
+    public void setUseImportCsvFormat(boolean useImportCsvFormat) {
+        this.useImportCsvFormat = useImportCsvFormat;
     }
 }

@@ -17,6 +17,7 @@ public class Console {
     private final ListCollaboratorsCommandParser listCollaboratorsCommandParser;
     private final ListAssignmentsCommandParser listAssignmentsCommandParser;
     private final ImportCommandParser importCommandParser;
+    private final ExportCommandParser exportCommandParser;
     private final UpdateTaskCommandParser updateTaskCommandParser;
     private final SearchTaskCommandParser searchTaskCommandParser;
 
@@ -36,8 +37,9 @@ public class Console {
         this.listCollaboratorsCommandParser = new ListCollaboratorsCommandParser();
         this.listAssignmentsCommandParser = new ListAssignmentsCommandParser();
         this.importCommandParser = new ImportCommandParser();
-        this.updateTaskCommandParser = new UpdateTaskCommandParser();
         this.searchTaskCommandParser = new SearchTaskCommandParser();
+        this.exportCommandParser = new ExportCommandParser(this.searchTaskCommandParser);
+        this.updateTaskCommandParser = new UpdateTaskCommandParser();
     }
 
     public void executeCommand(Command command) {
@@ -142,6 +144,10 @@ public class Console {
                     command = parseImport(args);
                     break;
 
+                case "export":
+                    command = parseExport(args);
+                    break;
+
                 case "help":
                     HelpPrinter.printCommandHelp(args);
                     return;
@@ -211,6 +217,10 @@ public class Console {
 
     private Command parseImport(String args) {
         return importCommandParser.parse(args);
+    }
+
+    private Command parseExport(String args) {
+        return exportCommandParser.parse(args);
     }
 
     public void initialize() {

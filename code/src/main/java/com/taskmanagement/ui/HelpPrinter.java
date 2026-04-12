@@ -20,6 +20,7 @@ public final class HelpPrinter {
         System.out.println("list-collaborators");
         System.out.println("list-assignments");
         System.out.println("import");
+        System.out.println("export");
         System.out.println("update-task");
         System.out.println("search-task");
         System.out.println("help");
@@ -98,7 +99,7 @@ public final class HelpPrinter {
 
             case "search-task":
                 System.out.println("search-task <mode> <args> [| <mode> <args> ...]");
-                System.out.println("No args: lists all tasks sorted by due date (ascending)");
+                System.out.println("No args: lists OPEN tasks sorted by due date (ascending)");
                 System.out.println("Modes:");
                 System.out.println("  keyword <text>");
                 System.out.println("  tag <tag-name>");
@@ -114,6 +115,12 @@ public final class HelpPrinter {
                 System.out.println("import <csv-file-path>");
                 System.out.println("Expected CSV columns:");
                 System.out.println("  TaskName, Description, Subtask, Status, Priority, DueDate, ProjectName, ProjectDescription, Collaborator, CollaboratorCategory");
+                break;
+
+            case "export":
+                System.out.println("export <csv-file-path>");
+                System.out.println("Exports the latest search-task results in import CSV format.");
+                System.out.println("Run search-task first, then export.");
                 break;
 
             case "help":
