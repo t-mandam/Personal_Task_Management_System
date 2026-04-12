@@ -139,6 +139,7 @@ public class DatabaseConnection {
 
     private void applyMigrations() throws SQLException {
         addColumnIfMissing("tasks", "parent_task_id", "VARCHAR(36)");
+        addColumnIfMissing("activities", "task_id", "VARCHAR(36)");
     }
 
     private void addColumnIfMissing(String tableName, String columnName, String columnDefinition) throws SQLException {

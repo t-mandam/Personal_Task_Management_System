@@ -19,6 +19,7 @@ public final class HelpPrinter {
         System.out.println("assign-collaborator");
         System.out.println("list-collaborators");
         System.out.println("list-assignments");
+        System.out.println("activity-log");
         System.out.println("import");
         System.out.println("export");
         System.out.println("sort-task");
@@ -96,6 +97,12 @@ public final class HelpPrinter {
             case "list-assignments":
                 System.out.println("list-assignments");
                 System.out.println("Lists all task-collaborator assignments.");
+                break;
+
+            case "activity-log":
+                System.out.println("activity-log [task-id]");
+                System.out.println("Lists activity log entries.");
+                System.out.println("Optional task-id filters entries for one task only.");
                 break;
 
             case "search-task":

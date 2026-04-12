@@ -34,6 +34,11 @@ public class ActivityMapper {
             activity.setDescription(description);
         }
 
+        String taskId = rs.getString("task_id");
+        if (taskId != null) {
+            activity.setTaskId(taskId);
+        }
+
         return activity;
     }
 
@@ -45,6 +50,7 @@ public class ActivityMapper {
     public Map<String, Object> mapActivityToValues(Activity activity) {
         Map<String, Object> values = new HashMap<>();
         values.put("timestamp", activity.getTimestamp() != null ? new Timestamp(activity.getTimestamp().getTime()) : new Timestamp(System.currentTimeMillis()));
+        values.put("task_id", activity.getTaskId());
         values.put("description", activity.getDescription());
         return values;
     }
@@ -52,12 +58,13 @@ public class ActivityMapper {
     /**
      * Extracts column values from an Activity for an INSERT statement
      * @param activity the Activity to extract values from
-     * @return array of values: [id, timestamp, description]
+     * @return array of values: [id, timestamp, task_id, description]
      */
     public Object[] getInsertValues(Activity activity) {
         return new Object[]{
             EntityIdGenerator.nextId(),
             activity.getTimestamp() != null ? new Timestamp(activity.getTimestamp().getTime()) : new Timestamp(System.currentTimeMillis()),
+            activity.getTaskId(),
             activity.getDescription()
         };
     }

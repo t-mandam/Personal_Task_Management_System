@@ -2,6 +2,10 @@ package com.taskmanagement.command;
 
 import com.taskmanagement.domain.Task;
 import com.taskmanagement.factory.TaskFactory;
+import com.taskmanagement.observer.Activity;
+import com.taskmanagement.observer.ActivityRecorder;
+import com.taskmanagement.persistence.DatabaseConnection;
+import com.taskmanagement.persistence.activity.DatabaseActivityRecorder;
 import com.taskmanagement.repository.TaskCatalog;
 
 /**
@@ -9,6 +13,7 @@ import com.taskmanagement.repository.TaskCatalog;
  */
 public class CreateTaskCommand implements Command {
     private TaskFactory taskFactory;
+    private ActivityRecorder activityRecorder;
     private String title;
     private String description;
     private Task createdTask;
@@ -16,6 +21,7 @@ public class CreateTaskCommand implements Command {
     public CreateTaskCommand() {
         // Initialize with the singleton TaskCatalog
         this.taskFactory = new TaskFactory(TaskCatalog.getInstance());
+        this.activityRecorder = new DatabaseActivityRecorder(DatabaseConnection.getInstance());
     }
 
     public CreateTaskCommand(String title) {
@@ -33,12 +39,19 @@ public class CreateTaskCommand implements Command {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Task title cannot be null or empty");
         }
+        if (activityRecorder == null) {
+            throw new IllegalStateException("Activity recorder cannot be null");
+        }
 
         this.createdTask = taskFactory.createTask(title);
         
         if (description != null && !description.trim().isEmpty()) {
             createdTask.setDescription(description);
         }
+
+        Activity activity = new Activity("Task " + createdTask.getId() + " created with title '" + createdTask.getTitle() + "'");
+        activity.setTaskId(createdTask.getId());
+        activityRecorder.record(activity);
         
         System.out.println("Task created: " + createdTask.getTitle());
         if (description != null && !description.trim().isEmpty()) {
@@ -101,5 +114,13 @@ public class CreateTaskCommand implements Command {
      */
     public TaskFactory getTaskFactory() {
         return taskFactory;
+    }
+
+    public ActivityRecorder getActivityRecorder() {
+        return activityRecorder;
+    }
+
+    public void setActivityRecorder(ActivityRecorder activityRecorder) {
+        this.activityRecorder = activityRecorder;
     }
 }

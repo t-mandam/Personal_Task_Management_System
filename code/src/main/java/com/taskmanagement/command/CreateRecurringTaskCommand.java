@@ -4,6 +4,10 @@ import com.taskmanagement.domain.Task;
 import com.taskmanagement.domain.Recurrence;
 import com.taskmanagement.enums.RecurrenceType;
 import com.taskmanagement.factory.TaskFactory;
+import com.taskmanagement.observer.Activity;
+import com.taskmanagement.observer.ActivityRecorder;
+import com.taskmanagement.persistence.DatabaseConnection;
+import com.taskmanagement.persistence.activity.DatabaseActivityRecorder;
 import com.taskmanagement.repository.TaskCatalog;
 
 import java.time.LocalDate;
@@ -14,6 +18,7 @@ import java.util.List;
  */
 public class CreateRecurringTaskCommand implements Command {
     private TaskFactory taskFactory;
+    private ActivityRecorder activityRecorder;
     private String title;
     private String description;
     private RecurrenceType recurrenceType;
@@ -26,6 +31,7 @@ public class CreateRecurringTaskCommand implements Command {
     public CreateRecurringTaskCommand() {
         // Initialize with the singleton TaskCatalog
         this.taskFactory = new TaskFactory(TaskCatalog.getInstance());
+        this.activityRecorder = new DatabaseActivityRecorder(DatabaseConnection.getInstance());
         this.occurrences = 1;
     }
 
@@ -62,6 +68,9 @@ public class CreateRecurringTaskCommand implements Command {
         if (occurrences <= 0) {
             throw new IllegalArgumentException("Occurrences must be greater than 0");
         }
+        if (activityRecorder == null) {
+            throw new IllegalStateException("Activity recorder cannot be null");
+        }
 
         Recurrence recurrence = new Recurrence(recurrenceType, interval);
         this.createdTasks = taskFactory.createRecurringTasks(title, recurrence, startDueDate, occurrences);
@@ -71,6 +80,12 @@ public class CreateRecurringTaskCommand implements Command {
             for (Task task : createdTasks) {
                 task.setDescription(description);
             }
+        }
+
+        for (Task task : createdTasks) {
+            Activity activity = new Activity("Recurring task " + task.getId() + " created with title '" + task.getTitle() + "'");
+            activity.setTaskId(task.getId());
+            activityRecorder.record(activity);
         }
 
         System.out.println("Recurring tasks created: " + createdTasks.size());
@@ -191,5 +206,13 @@ public class CreateRecurringTaskCommand implements Command {
      */
     public TaskFactory getTaskFactory() {
         return taskFactory;
+    }
+
+    public ActivityRecorder getActivityRecorder() {
+        return activityRecorder;
+    }
+
+    public void setActivityRecorder(ActivityRecorder activityRecorder) {
+        this.activityRecorder = activityRecorder;
     }
 }

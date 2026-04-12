@@ -9,6 +9,10 @@ import com.taskmanagement.domain.Senior;
 import com.taskmanagement.domain.Subtask;
 import com.taskmanagement.domain.Task;
 import com.taskmanagement.factory.TaskFactory;
+import com.taskmanagement.observer.Activity;
+import com.taskmanagement.observer.ActivityRecorder;
+import com.taskmanagement.persistence.DatabaseConnection;
+import com.taskmanagement.persistence.activity.DatabaseActivityRecorder;
 import com.taskmanagement.repository.AssignmentRepository;
 import com.taskmanagement.repository.CollaboratorRepository;
 import com.taskmanagement.repository.AssignmentCatalog;
@@ -33,6 +37,7 @@ public class ImportCommand implements Command {
     private CollaboratorRepository collaboratorRepository;
     private AssignmentRepository assignmentRepository;
     private TaskFactory taskFactory;
+    private ActivityRecorder activityRecorder;
     private String importSource;
     private ImportData importData;
 
@@ -43,6 +48,7 @@ public class ImportCommand implements Command {
         this.collaboratorRepository = CollaboratorCatalog.getInstance();
         this.assignmentRepository = AssignmentCatalog.getInstance();
         this.taskFactory = new TaskFactory(this.taskRepository);
+        this.activityRecorder = new DatabaseActivityRecorder(DatabaseConnection.getInstance());
     }
 
     public ImportCommand(String importSource) {
@@ -62,6 +68,9 @@ public class ImportCommand implements Command {
         }
         if (importSource == null || importSource.trim().isEmpty()) {
             throw new IllegalStateException("Import source cannot be null or empty");
+        }
+        if (activityRecorder == null) {
+            throw new IllegalStateException("Activity recorder cannot be null");
         }
 
         try {
@@ -87,9 +96,11 @@ public class ImportCommand implements Command {
                 }
 
                 taskRepository.addTask(task);
+                recordActivity(task, "Task " + task.getId() + " created via import from '" + importSource + "'");
 
                 if (importedRow.getSubtaskTitle() != null && !importedRow.getSubtaskTitle().trim().isEmpty()) {
-                    taskFactory.createSubtask(task, importedRow.getSubtaskTitle().trim());
+                    Subtask createdSubtask = taskFactory.createSubtask(task, importedRow.getSubtaskTitle().trim());
+                    recordActivity(createdSubtask, "Subtask " + createdSubtask.getId() + " created via import under task " + task.getId());
                 }
 
                 if (importedRow.getCollaboratorName() != null && !importedRow.getCollaboratorName().trim().isEmpty()) {
@@ -387,6 +398,14 @@ public class ImportCommand implements Command {
         this.taskFactory = taskFactory;
     }
 
+    public ActivityRecorder getActivityRecorder() {
+        return activityRecorder;
+    }
+
+    public void setActivityRecorder(ActivityRecorder activityRecorder) {
+        this.activityRecorder = activityRecorder;
+    }
+
     public String getImportSource() {
         return importSource;
     }
@@ -401,5 +420,15 @@ public class ImportCommand implements Command {
 
     public void setImportData(ImportData importData) {
         this.importData = importData;
+    }
+
+    private void recordActivity(Task task, String description) {
+        if (task == null) {
+            return;
+        }
+
+        Activity activity = new Activity(description);
+        activity.setTaskId(task.getId());
+        activityRecorder.record(activity);
     }
 }

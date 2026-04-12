@@ -7,6 +7,7 @@ import java.util.Date;
  */
 public class Activity {
     private Date timestamp;
+    private String taskId;
     private String description;
 
     public Activity() {
@@ -27,6 +28,14 @@ public class Activity {
         this.timestamp = timestamp;
     }
 
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -37,6 +46,9 @@ public class Activity {
 
     @Override
     public String toString() {
-        return "[" + timestamp + "] " + description;
+        if (taskId == null || taskId.trim().isEmpty()) {
+            return "[" + timestamp + "] " + description;
+        }
+        return "[" + timestamp + "] [Task " + taskId + "] " + description;
     }
 }

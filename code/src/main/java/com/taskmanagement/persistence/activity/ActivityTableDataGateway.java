@@ -30,7 +30,7 @@ public class ActivityTableDataGateway {
      * @throws SQLException if database operation fails
      */
     public void insert(Activity activity) throws SQLException {
-        String sql = "INSERT INTO activities (id, timestamp, description) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO activities (id, timestamp, task_id, description) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -39,9 +39,35 @@ public class ActivityTableDataGateway {
             stmt.setString(1, (String) values[0]);
             stmt.setTimestamp(2, (java.sql.Timestamp) values[1]);
             stmt.setString(3, (String) values[2]);
+            stmt.setString(4, (String) values[3]);
 
             stmt.executeUpdate();
         }
+    }
+
+    /**
+     * Finds all activities for a specific task.
+     * @param taskId the task ID
+     * @return activities linked to the task, newest first
+     * @throws SQLException if database operation fails
+     */
+    public List<Activity> findByTaskId(String taskId) throws SQLException {
+        List<Activity> activities = new ArrayList<>();
+        String sql = "SELECT * FROM activities WHERE task_id = ? ORDER BY timestamp DESC";
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, taskId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    activities.add(mapper.mapRowToActivity(rs));
+                }
+            }
+        }
+
+        return activities;
     }
 
     /**

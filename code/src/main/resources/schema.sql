@@ -70,5 +70,6 @@ CREATE TABLE IF NOT EXISTS assignments (
 CREATE TABLE IF NOT EXISTS activities (
     id VARCHAR(36) PRIMARY KEY,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    task_id VARCHAR(36),
     description TEXT NOT NULL
 );

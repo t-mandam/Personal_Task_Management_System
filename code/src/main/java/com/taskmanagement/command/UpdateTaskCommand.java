@@ -4,6 +4,10 @@ import com.taskmanagement.domain.Tag;
 import com.taskmanagement.domain.Task;
 import com.taskmanagement.enums.Priority;
 import com.taskmanagement.enums.Status;
+import com.taskmanagement.observer.Activity;
+import com.taskmanagement.observer.ActivityRecorder;
+import com.taskmanagement.persistence.DatabaseConnection;
+import com.taskmanagement.persistence.activity.DatabaseActivityRecorder;
 import com.taskmanagement.repository.TagCatalog;
 import com.taskmanagement.repository.TagRepository;
 import com.taskmanagement.repository.TaskCatalog;
@@ -15,16 +19,34 @@ import java.time.LocalDate;
  * Command that updates a task by ID and field name.
  */
 public class UpdateTaskCommand implements Command {
-    private final TaskRepository taskRepository = TaskCatalog.getInstance();
-    private final TagRepository tagRepository = TagCatalog.getInstance();
+    private final TaskRepository taskRepository;
+    private final TagRepository tagRepository;
+    private final ActivityRecorder activityRecorder;
     private final String taskId;
     private final String field;
     private final String value;
 
     public UpdateTaskCommand(String taskId, String field, String value) {
+        this(taskId,
+                field,
+                value,
+                TaskCatalog.getInstance(),
+                TagCatalog.getInstance(),
+                new DatabaseActivityRecorder(DatabaseConnection.getInstance()));
+    }
+
+    public UpdateTaskCommand(String taskId,
+                             String field,
+                             String value,
+                             TaskRepository taskRepository,
+                             TagRepository tagRepository,
+                             ActivityRecorder activityRecorder) {
         this.taskId = taskId;
         this.field = field;
         this.value = value;
+        this.taskRepository = taskRepository;
+        this.tagRepository = tagRepository;
+        this.activityRecorder = activityRecorder;
     }
 
     @Override
@@ -38,67 +60,95 @@ public class UpdateTaskCommand implements Command {
         if (field == null || field.trim().isEmpty()) {
             throw new IllegalStateException("Update field cannot be null or empty");
         }
+        if (tagRepository == null) {
+            throw new IllegalStateException("Tag repository cannot be null");
+        }
+        if (activityRecorder == null) {
+            throw new IllegalStateException("Activity recorder cannot be null");
+        }
 
         Task task = taskRepository.findById(taskId.trim());
         if (task == null) {
             throw new IllegalArgumentException("Task with ID '" + taskId + "' not found");
         }
 
-        applyUpdate(task, field.trim().toLowerCase(), value != null ? value.trim() : "");
+        String normalizedField = field.trim().toLowerCase();
+        String normalizedValue = value != null ? value.trim() : "";
+
+        String activityDescription = applyUpdate(task, normalizedField, normalizedValue);
         taskRepository.updateTask(task);
+        Activity activity = new Activity(activityDescription);
+        activity.setTaskId(task.getId());
+        activityRecorder.record(activity);
         System.out.println("Task updated: " + task.getId() + " - " + task.getTitle());
     }
 
-    private void applyUpdate(Task task, String field, String value) {
+    private String applyUpdate(Task task, String field, String value) {
         switch (field) {
             case "title":
                 requireValue(field, value);
+                String oldTitle = task.getTitle();
                 task.setTitle(value);
-                break;
+                return "Task " + task.getId() + " title updated from '" + safe(oldTitle) + "' to '" + safe(task.getTitle()) + "'";
 
             case "description":
+                String oldDescription = task.getDescription();
                 task.setDescription(value);
-                break;
+                return "Task " + task.getId() + " description updated from '" + safe(oldDescription) + "' to '" + safe(task.getDescription()) + "'";
 
             case "due-date":
             case "duedate":
                 requireValue(field, value);
+                LocalDate oldDueDate = task.getDueDate();
                 task.setDueDate(parseDate(value));
-                break;
+                return "Task " + task.getId() + " due date updated from '" + safe(oldDueDate) + "' to '" + safe(task.getDueDate()) + "'";
 
             case "priority":
                 requireValue(field, value);
+                Priority oldPriority = task.getPriority();
                 task.setPriority(Priority.valueOf(value.toUpperCase()));
-                break;
+                return "Task " + task.getId() + " priority updated from '" + safe(oldPriority) + "' to '" + safe(task.getPriority()) + "'";
 
             case "status":
                 requireValue(field, value);
+                Status oldStatus = task.getStatus();
                 task.setStatus(Status.valueOf(value.toUpperCase()));
-                break;
+                return "Task " + task.getId() + " status updated from '" + safe(oldStatus) + "' to '" + safe(task.getStatus()) + "'";
 
             case "add-tag":
             case "tag-add":
                 requireValue(field, value);
-                task.addTag(resolveExistingTag(value));
-                break;
+                Tag tagToAdd = resolveExistingTag(value);
+                task.addTag(tagToAdd);
+                return "Tag '" + safe(tagToAdd.getName()) + "' added to task " + task.getId();
 
             case "remove-tag":
             case "tag-remove":
                 requireValue(field, value);
-                task.removeTag(resolveExistingTag(value));
-                break;
+                Tag tagToRemove = resolveExistingTag(value);
+                task.removeTag(tagToRemove);
+                return "Tag '" + safe(tagToRemove.getName()) + "' removed from task " + task.getId();
 
             case "complete":
-                task.completeTask();
-                break;
+                boolean completed = task.completeTask();
+                if (completed) {
+                    return "Task " + task.getId() + " marked as COMPLETED";
+                }
+                return "Task " + task.getId() + " complete requested but task was already COMPLETED";
 
             case "cancel":
-                task.cancelTask();
-                break;
+                boolean cancelled = task.cancelTask();
+                if (cancelled) {
+                    return "Task " + task.getId() + " marked as CANCELLED";
+                }
+                return "Task " + task.getId() + " cancel requested but task was already CANCELLED";
 
             case "reopen":
-                task.reopenTask();
-                break;
+                boolean reopened = task.reopenTask();
+                if (reopened) {
+                    return "Task " + task.getId() + " reopened to OPEN";
+                }
+                return "Task " + task.getId() + " reopen requested but task was already OPEN";
 
             default:
                 throw new IllegalArgumentException(
@@ -127,5 +177,14 @@ public class UpdateTaskCommand implements Command {
             throw new IllegalArgumentException("Tag not found: '" + tagName + "'. Create it first using create-tag.");
         }
         return tag;
+    }
+
+    private String safe(Object value) {
+        if (value == null) {
+            return "-";
+        }
+
+        String text = String.valueOf(value).trim();
+        return text.isEmpty() ? "-" : text;
     }
 }

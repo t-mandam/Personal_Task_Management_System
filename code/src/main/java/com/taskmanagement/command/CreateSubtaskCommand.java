@@ -3,6 +3,10 @@ package com.taskmanagement.command;
 import com.taskmanagement.domain.Task;
 import com.taskmanagement.domain.Subtask;
 import com.taskmanagement.factory.TaskFactory;
+import com.taskmanagement.observer.Activity;
+import com.taskmanagement.observer.ActivityRecorder;
+import com.taskmanagement.persistence.DatabaseConnection;
+import com.taskmanagement.persistence.activity.DatabaseActivityRecorder;
 import com.taskmanagement.repository.TaskCatalog;
 
 /**
@@ -11,6 +15,7 @@ import com.taskmanagement.repository.TaskCatalog;
 public class CreateSubtaskCommand implements Command {
     private TaskFactory taskFactory;
     private TaskCatalog taskCatalog;
+    private ActivityRecorder activityRecorder;
     private String parentTaskId;
     private String title;
     private Subtask createdSubtask;
@@ -18,6 +23,7 @@ public class CreateSubtaskCommand implements Command {
     public CreateSubtaskCommand() {
         this.taskCatalog = TaskCatalog.getInstance();
         this.taskFactory = new TaskFactory(taskCatalog);
+        this.activityRecorder = new DatabaseActivityRecorder(DatabaseConnection.getInstance());
     }
 
     public CreateSubtaskCommand(String parentTaskId, String title) {
@@ -35,6 +41,9 @@ public class CreateSubtaskCommand implements Command {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Subtask title cannot be null or empty");
         }
+        if (activityRecorder == null) {
+            throw new IllegalStateException("Activity recorder cannot be null");
+        }
 
         Task parentTask = taskCatalog.findById(parentTaskId);
         if (parentTask == null) {
@@ -42,6 +51,11 @@ public class CreateSubtaskCommand implements Command {
         }
 
         this.createdSubtask = taskFactory.createSubtask(parentTask, title);
+
+        Activity activity = new Activity("Subtask " + createdSubtask.getId() + " created under task " + parentTask.getId());
+        activity.setTaskId(createdSubtask.getId());
+        activityRecorder.record(activity);
+
         System.out.println("Subtask created: " + createdSubtask.getTitle());
         System.out.println("Parent Task: " + parentTask.getTitle());
         System.out.println("Subtask ID: " + createdSubtask.getId());
@@ -101,5 +115,13 @@ public class CreateSubtaskCommand implements Command {
      */
     public TaskFactory getTaskFactory() {
         return taskFactory;
+    }
+
+    public ActivityRecorder getActivityRecorder() {
+        return activityRecorder;
+    }
+
+    public void setActivityRecorder(ActivityRecorder activityRecorder) {
+        this.activityRecorder = activityRecorder;
     }
 }
