@@ -16,15 +16,16 @@ This project is a console-based task management system. Tutors and professors ca
 
 ### Initialize the software
 
-1. Open the `code/` folder in VS Code.
-2. Run `src/main/java/com/taskmanagement/PersonalTaskManagementSystem.java` directly from the editor using the Java run action.
-3. If you want to rebuild the application from source, use Maven from the `code/` folder:
+1. Open the `code/` folder in your IDE.
+2. Open `src/main/java/com/taskmanagement/PersonalTaskManagementSystem.java`.
+3. Click the green run arrow next to `main` to start the application.
+4. If you want to rebuild the application from source, use Maven from the `code/` folder:
 
 	```bash
 	mvn clean package
 	```
 
-4. If you prefer to start the packaged jar after rebuilding, run:
+5. If you prefer to start the packaged jar after rebuilding, run:
 
 	```bash
 	java -jar target/task-management-system-1.0.0.jar
@@ -32,7 +33,7 @@ This project is a console-based task management system. Tutors and professors ca
 
 The first launch automatically creates the SQLite database and schema if they do not already exist. The database file is stored in `code/data/taskmanagement.db`, so running the program from the `code/` folder keeps the data in the expected location.
 
-If the project is already compiled in your workspace, Java 21 is enough to launch it directly from VS Code without installing JDK 11.
+If the project is already compiled in your workspace, Java 21 is enough to launch it directly from the IDE without installing JDK 11.
 
 ### Use the software
 
