@@ -1,0 +1,34 @@
+@startuml
+title Interaction Diagram - Cancel Task
+hide footbox
+
+participant "console: Console" as console
+participant "updateStatusCommand: UpdateStatusCommand" as updateStatusCommand
+participant "repo: TaskRepository" as repo
+participant "task: Task" as task
+participant "activityLog: ActivityLog" as activityLog
+participant "activity: Activity" as activity
+
+[-> console : cancelTask(taskID)
+
+create updateStatusCommand
+console -> updateStatusCommand : create(taskID)
+console -> console : executeCommand(updateStatusCommand)
+console -> updateStatusCommand : execute()
+
+updateStatusCommand -> repo : findById(taskID)
+repo --> updateStatusCommand : task
+
+updateStatusCommand -> task : cancelTask()
+task --> updateStatusCommand : true
+
+updateStatusCommand -> repo : updateTask(task)
+
+task -> activityLog : update(task)
+create activity
+activityLog -> activity : create(timestamp, "Task cancelled")
+activity --> activityLog : activity created
+
+updateStatusCommand --> console : taskCancelled()
+[<- console : confirmation
+@enduml

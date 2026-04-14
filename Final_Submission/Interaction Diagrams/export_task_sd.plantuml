@@ -1,0 +1,27 @@
+@startuml
+title Interaction Diagram - Export Tasks
+hide footbox
+
+participant "Console" as console
+participant "ExportCommand" as exportCommand
+participant "Task Repository" as repo
+participant "Assignment Repository" as assignmentRepo
+participant "Export Service" as exportService
+
+[-> console : exportTasks(filePath)
+console -> exportCommand : create(filePath, filters)
+console -> exportCommand : execute()
+
+exportCommand -> repo : findTasksToExport()
+repo --> exportCommand : tasks
+
+exportCommand -> assignmentRepo : getAssignments(tasks)
+assignmentRepo --> exportCommand : assignments
+
+exportCommand -> exportService : export(tasks, assignments, filePath)
+exportService --> exportCommand : success
+
+exportCommand --> console : exportCompleted()
+[<- console : confirmation
+
+@enduml
