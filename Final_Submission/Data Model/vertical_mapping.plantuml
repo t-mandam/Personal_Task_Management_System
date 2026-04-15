@@ -1,0 +1,99 @@
+@startuml
+title UML Data Model — Vertical Mapping
+
+entity tasks {
+  * id : String <<PK>>
+  --
+  * title : String
+  description : String
+  creation_date : Timestamp
+  due_date : Date
+  priority : String
+  status : String
+  recurrence_type : String
+  recurrence_interval : int
+  project_id : String <<FK>>
+}
+
+entity subtasks {
+  * id : String <<PK, FK>>
+  --
+  * parent_task_id : String <<FK>>
+}
+
+entity projects {
+  * id : String <<PK>>
+  --
+  * name : String
+  description : String
+}
+
+entity tags {
+  * id : String <<PK>>
+  --
+  * name : String
+}
+
+entity task_tags {
+  * task_id : String <<FK>>
+  * tag_id : String <<FK>>
+}
+
+entity collaborators {
+  * id : String <<PK>>
+  --
+  * name : String
+}
+
+entity junior {
+  * id : String <<PK, FK>>
+}
+
+entity intermediate {
+  * id : String <<PK, FK>>
+}
+
+entity senior {
+  * id : String <<PK, FK>>
+}
+
+entity assignments {
+  * id : String <<PK>>
+  --
+  * task_id : String <<FK>>
+  * collaborator_id : String <<FK>>
+}
+
+entity project_collaborators {
+  * project_id : String <<FK>>
+  * collaborator_id : String <<FK>>
+}
+
+entity activities {
+  * id : String <<PK>>
+  --
+  * timestamp : Timestamp
+  * description : String
+  * task_id : String <<FK>>
+}
+
+' Task hierarchy
+tasks ||--|| subtasks : id
+subtasks }o--|| tasks : parent_task_id
+
+' Collaborator hierarchy
+collaborators ||--|| junior : id
+collaborators ||--|| intermediate : id
+collaborators ||--|| senior : id
+
+' Relationships
+tasks }o--|| projects : project_id
+tasks ||--o{ task_tags : task_id
+tags ||--o{ task_tags : tag_id
+tasks ||--o{ assignments : task_id
+collaborators ||--o{ assignments : collaborator_id
+projects ||--o{ project_collaborators : project_id
+collaborators ||--o{ project_collaborators : collaborator_id
+tasks ||--o{ activities : task_id
+
+@enduml

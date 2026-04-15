@@ -1,0 +1,115 @@
+@startuml
+title UML Data Model — Horizontal Mapping 
+
+
+entity tasks {
+  * id : String <<PK>>
+  --
+  * title : String
+  description : String
+  creation_date : Timestamp
+  due_date : Date
+  priority : String
+  status : String
+  recurrence_type : String
+  recurrence_interval : int
+  project_id : String <<FK>>
+}
+
+entity subtasks {
+  * id : String <<PK>>
+  --
+  * title : String
+  description : String
+  creation_date : Timestamp
+  due_date : Date
+  priority : String
+  status : String
+  recurrence_type : String
+  recurrence_interval : int
+  project_id : String <<FK>>
+  parent_task_id : String <<FK>>
+}
+
+
+entity junior {
+  * id : String <<PK>>
+  --
+  * name : String
+}
+
+entity intermediate {
+  * id : String <<PK>>
+  --
+  * name : String
+}
+
+entity senior {
+  * id : String <<PK>>
+  --
+  * name : String
+}
+
+entity projects {
+  * id : String <<PK>>
+  --
+  * name : String
+  description : String
+}
+
+entity tags {
+  * id : String <<PK>>
+  --
+  * name : String
+}
+
+entity task_tags {
+  * task_id : String <<FK>>
+  * tag_id : String <<FK>>
+}
+
+entity assignments {
+  * id : String <<PK>>
+  --
+  * task_id : String <<FK>>
+  * collaborator_id : String <<FK>>
+}
+
+entity project_collaborators {
+  * project_id : String <<FK>>
+  * collaborator_id : String <<FK>>
+}
+
+entity activities {
+  * id : String <<PK>>
+  --
+  * timestamp : Timestamp
+  * description : String
+  * task_id : String <<FK>>
+}
+
+tasks }o--|| projects : project_id
+subtasks }o--|| projects : project_id
+subtasks }o--|| tasks : parent_task_id
+
+tasks ||--o{ task_tags : task_id
+subtasks ||--o{ task_tags : task_id
+tags ||--o{ task_tags : tag_id
+
+tasks ||--o{ assignments : task_id
+subtasks ||--o{ assignments : task_id
+
+junior ||--o{ assignments : collaborator_id
+intermediate ||--o{ assignments : collaborator_id
+senior ||--o{ assignments : collaborator_id
+
+projects ||--o{ project_collaborators : project_id
+
+junior ||--o{ project_collaborators : collaborator_id
+intermediate ||--o{ project_collaborators : collaborator_id
+senior ||--o{ project_collaborators : collaborator_id
+
+tasks ||--o{ activities : task_id
+subtasks ||--o{ activities : task_id
+
+@enduml
