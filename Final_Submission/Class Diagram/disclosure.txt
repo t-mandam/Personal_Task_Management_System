@@ -1,0 +1,3 @@
+We used PlantUML to do the class diagram.
+Because of the server's limitations, we had to break up our diagram into many parts.
+Otherwise, it would crash because of the excessive number of characters.
